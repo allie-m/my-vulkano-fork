@@ -1611,6 +1611,7 @@ impl SemaphoreState {
 
 #[derive(Clone, Debug)]
 enum SignalType {
+    #[allow(dead_code)] // to keep my build system from yelling at me
     Queue(Weak<Queue>),
     SwapchainAcquire,
 }

@@ -36,13 +36,16 @@ impl SpirvGrammar {
 #[derive(Clone, Debug, Deserialize)]
 pub struct SpirvInstruction {
     pub opname: String,
+    #[allow(unused)] // to keep my build system from yelling at me
     pub class: String,
     pub opcode: u16,
     #[serde(default)]
     pub operands: Vec<SpirvOperand>,
     #[serde(default)]
+    #[allow(unused)] // to keep my build system from yelling at me
     pub capabilities: Vec<String>,
     #[serde(default)]
+    #[allow(unused)] // to keep my build system from yelling at me
     pub extensions: Vec<String>,
 }
 
@@ -68,6 +71,7 @@ pub struct SpirvKindEnumerant {
     #[serde(default)]
     pub parameters: Vec<SpirvParameter>,
     #[serde(default)]
+    #[allow(unused)] // to keep my build system from yelling at me
     pub capabilities: Vec<String>,
 }
 

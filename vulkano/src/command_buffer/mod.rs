@@ -108,6 +108,7 @@
 //! [pipeline barriers]: CommandBufferBuilder::pipeline_barrier
 //! [`GpuFuture`]: crate::sync::GpuFuture
 
+#[allow(unused_imports)] // to keep it from yelling at me
 pub use self::{
     auto::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer, SecondaryAutoCommandBuffer},
     commands::{
