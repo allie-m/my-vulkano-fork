@@ -7,6 +7,10 @@
 // notice may not be copied, modified, or distributed except
 // according to those terms.
 
+#![allow(deprecated)] // i already wrote this once i don't wanna write it againnn
+                      // ok basically i'm updating rwh in the most lazy way
+                      // so that it'll be compatible w/egui
+
 use super::{FullScreenExclusive, PresentGravityFlags, PresentScalingFlags, Win32Monitor};
 use crate::{
     cache::OnceCache,
@@ -19,6 +23,7 @@ use crate::{
     DebugWrapper, Requires, RequiresAllOf, RequiresOneOf, Validated, ValidationError, VulkanError,
     VulkanObject,
 };
+
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 use objc::{class, msg_send, runtime::Object, sel, sel_impl};
 use raw_window_handle::{
@@ -65,7 +70,7 @@ impl Surface {
             khr_surface: true,
             ..InstanceExtensions::empty()
         };
-        match event_loop.raw_display_handle() {
+        match event_loop.raw_display_handle().unwrap() {
             RawDisplayHandle::Android(_) => extensions.khr_android_surface = true,
             // FIXME: `mvk_macos_surface` and `mvk_ios_surface` are deprecated.
             RawDisplayHandle::AppKit(_) => extensions.mvk_macos_surface = true,
@@ -101,9 +106,12 @@ impl Surface {
         instance: Arc<Instance>,
         window: &(impl HasRawWindowHandle + HasRawDisplayHandle),
     ) -> Result<Arc<Self>, Validated<VulkanError>> {
-        match (window.raw_window_handle(), window.raw_display_handle()) {
+        match (
+            window.raw_window_handle().unwrap(),
+            window.raw_display_handle().unwrap(),
+        ) {
             (RawWindowHandle::AndroidNdk(window), RawDisplayHandle::Android(_display)) => {
-                Self::from_android(instance, window.a_native_window, None)
+                Self::from_android(instance, window.a_native_window.as_ptr(), None)
             }
             #[cfg(target_os = "macos")]
             (RawWindowHandle::AppKit(window), RawDisplayHandle::AppKit(_display)) => {
@@ -120,17 +128,35 @@ impl Surface {
                 Self::from_ios(instance, layer, None)
             }
             (RawWindowHandle::Wayland(window), RawDisplayHandle::Wayland(display)) => {
-                Self::from_wayland(instance, display.display, window.surface, None)
+                Self::from_wayland(
+                    instance,
+                    display.display.as_ptr(),
+                    window.surface.as_ptr(),
+                    None,
+                )
             }
             (RawWindowHandle::Win32(window), RawDisplayHandle::Windows(_display)) => {
-                Self::from_win32(instance, window.hinstance, window.hwnd, None)
+                Self::from_win32(
+                    instance,
+                    window
+                        .hinstance
+                        .map_or(std::ptr::null(), |p| p.get() as *const std::ffi::c_void),
+                    window.hwnd.get() as *const std::ffi::c_void,
+                    None,
+                )
             }
-            (RawWindowHandle::Xcb(window), RawDisplayHandle::Xcb(display)) => {
-                Self::from_xcb(instance, display.connection, window.window, None)
-            }
-            (RawWindowHandle::Xlib(window), RawDisplayHandle::Xlib(display)) => {
-                Self::from_xlib(instance, display.display, window.window, None)
-            }
+            (RawWindowHandle::Xcb(window), RawDisplayHandle::Xcb(display)) => Self::from_xcb(
+                instance,
+                display.connection.map_or(std::ptr::null(), |p| p.as_ptr()),
+                window.window.get(),
+                None,
+            ),
+            (RawWindowHandle::Xlib(window), RawDisplayHandle::Xlib(display)) => Self::from_xlib(
+                instance,
+                display.display.map_or(std::ptr::null(), |p| p.as_ptr()),
+                window.window,
+                None,
+            ),
             _ => unimplemented!(
                 "the window was created with a windowing API that is not supported \
                 by Vulkan/Vulkano"

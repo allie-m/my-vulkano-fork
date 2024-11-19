@@ -14,4 +14,4 @@ categories = ["rendering::graphics-api"]
 [dependencies]
 ahash = "0.8"
 vulkano = { version = "0.34.0", path = "../vulkano", default-features = false }
-winit = { version = "0.28" }
+winit = { version = "0.30.4" }

@@ -11,13 +11,16 @@
 // notice may not be copied, modified, or distributed except
 // according to those terms.
 
+#![allow(deprecated)] // lazy updating to winit 0.30.4
+
 use crate::{context::VulkanoContext, renderer::VulkanoWindowRenderer};
 use ahash::HashMap;
 use std::collections::hash_map::{Iter, IterMut};
 use vulkano::swapchain::{PresentMode, SwapchainCreateInfo};
 use winit::{
-    dpi::LogicalSize,
-    window::{CursorGrabMode, WindowId},
+    // dpi::LogicalSize,
+    // window::{CursorGrabMode, WindowId},
+    window::WindowId,
 };
 
 /// A struct organizing windows and their corresponding renderers. This makes it easy to handle
@@ -52,126 +55,127 @@ impl VulkanoWindows {
     /// [`WindowDescriptor`] input and swapchain creation modifications.
     pub fn create_window(
         &mut self,
-        event_loop: &winit::event_loop::EventLoopWindowTarget<()>,
-        vulkano_context: &VulkanoContext,
-        window_descriptor: &WindowDescriptor,
-        swapchain_create_info_modify: fn(&mut SwapchainCreateInfo),
+        _event_loop: &winit::event_loop::EventLoop<()>,
+        _vulkano_context: &VulkanoContext,
+        _window_descriptor: &WindowDescriptor,
+        _swapchain_create_info_modify: fn(&mut SwapchainCreateInfo),
     ) -> winit::window::WindowId {
-        #[cfg(target_os = "windows")]
-        let mut winit_window_builder = {
-            use winit::platform::windows::WindowBuilderExtWindows;
-            winit::window::WindowBuilder::new().with_drag_and_drop(false)
-        };
+        // #[cfg(target_os = "windows")]
+        // let mut winit_window_builder = {
+        //     use winit::platform::windows::WindowBuilderExtWindows;
+        //     winit::window::WindowBuilder::new().with_drag_and_drop(false)
+        // };
 
-        #[cfg(not(target_os = "windows"))]
-        let mut winit_window_builder = winit::window::WindowBuilder::new();
+        // #[cfg(not(target_os = "windows"))]
+        // let mut winit_window_builder = winit::window::WindowBuilder::new();
 
-        winit_window_builder = match window_descriptor.mode {
-            WindowMode::BorderlessFullscreen => winit_window_builder.with_fullscreen(Some(
-                winit::window::Fullscreen::Borderless(event_loop.primary_monitor()),
-            )),
-            WindowMode::Fullscreen => {
-                winit_window_builder.with_fullscreen(Some(winit::window::Fullscreen::Exclusive(
-                    get_best_videomode(&event_loop.primary_monitor().unwrap()),
-                )))
-            }
-            WindowMode::SizedFullscreen => winit_window_builder.with_fullscreen(Some(
-                winit::window::Fullscreen::Exclusive(get_fitting_videomode(
-                    &event_loop.primary_monitor().unwrap(),
-                    window_descriptor.width as u32,
-                    window_descriptor.height as u32,
-                )),
-            )),
-            _ => {
-                let WindowDescriptor {
-                    width,
-                    height,
-                    position,
-                    scale_factor_override,
-                    ..
-                } = window_descriptor;
+        // winit_window_builder = match window_descriptor.mode {
+        //     WindowMode::BorderlessFullscreen => winit_window_builder.with_fullscreen(Some(
+        //         winit::window::Fullscreen::Borderless(event_loop.primary_monitor()),
+        //     )),
+        //     WindowMode::Fullscreen => {
+        //         winit_window_builder.with_fullscreen(Some(winit::window::Fullscreen::Exclusive(
+        //             get_best_videomode(&event_loop.primary_monitor().unwrap()),
+        //         )))
+        //     }
+        //     WindowMode::SizedFullscreen => winit_window_builder.with_fullscreen(Some(
+        //         winit::window::Fullscreen::Exclusive(get_fitting_videomode(
+        //             &event_loop.primary_monitor().unwrap(),
+        //             window_descriptor.width as u32,
+        //             window_descriptor.height as u32,
+        //         )),
+        //     )),
+        //     _ => {
+        //         let WindowDescriptor {
+        //             width,
+        //             height,
+        //             position,
+        //             scale_factor_override,
+        //             ..
+        //         } = window_descriptor;
 
-                if let Some(position) = position {
-                    if let Some(sf) = scale_factor_override {
-                        winit_window_builder = winit_window_builder.with_position(
-                            winit::dpi::LogicalPosition::new(
-                                position[0] as f64,
-                                position[1] as f64,
-                            )
-                            .to_physical::<f64>(*sf),
-                        );
-                    } else {
-                        winit_window_builder =
-                            winit_window_builder.with_position(winit::dpi::LogicalPosition::new(
-                                position[0] as f64,
-                                position[1] as f64,
-                            ));
-                    }
-                }
-                if let Some(sf) = scale_factor_override {
-                    winit_window_builder.with_inner_size(
-                        winit::dpi::LogicalSize::new(*width, *height).to_physical::<f64>(*sf),
-                    )
-                } else {
-                    winit_window_builder
-                        .with_inner_size(winit::dpi::LogicalSize::new(*width, *height))
-                }
-            }
-            .with_resizable(window_descriptor.resizable)
-            .with_decorations(window_descriptor.decorations)
-            .with_transparent(window_descriptor.transparent),
-        };
+        //         if let Some(position) = position {
+        //             if let Some(sf) = scale_factor_override {
+        //                 winit_window_builder = winit_window_builder.with_position(
+        //                     winit::dpi::LogicalPosition::new(
+        //                         position[0] as f64,
+        //                         position[1] as f64,
+        //                     )
+        //                     .to_physical::<f64>(*sf),
+        //                 );
+        //             } else {
+        //                 winit_window_builder =
+        //                     winit_window_builder.with_position(winit::dpi::LogicalPosition::new(
+        //                         position[0] as f64,
+        //                         position[1] as f64,
+        //                     ));
+        //             }
+        //         }
+        //         if let Some(sf) = scale_factor_override {
+        //             winit_window_builder.with_inner_size(
+        //                 winit::dpi::LogicalSize::new(*width, *height).to_physical::<f64>(*sf),
+        //             )
+        //         } else {
+        //             winit_window_builder
+        //                 .with_inner_size(winit::dpi::LogicalSize::new(*width, *height))
+        //         }
+        //     }
+        //     .with_resizable(window_descriptor.resizable)
+        //     .with_decorations(window_descriptor.decorations)
+        //     .with_transparent(window_descriptor.transparent),
+        // };
 
-        let constraints = window_descriptor.resize_constraints.check_constraints();
-        let min_inner_size = LogicalSize {
-            width: constraints.min_width,
-            height: constraints.min_height,
-        };
-        let max_inner_size = LogicalSize {
-            width: constraints.max_width,
-            height: constraints.max_height,
-        };
+        // let constraints = window_descriptor.resize_constraints.check_constraints();
+        // let min_inner_size = LogicalSize {
+        //     width: constraints.min_width,
+        //     height: constraints.min_height,
+        // };
+        // let max_inner_size = LogicalSize {
+        //     width: constraints.max_width,
+        //     height: constraints.max_height,
+        // };
 
-        let winit_window_builder =
-            if constraints.max_width.is_finite() && constraints.max_height.is_finite() {
-                winit_window_builder
-                    .with_min_inner_size(min_inner_size)
-                    .with_max_inner_size(max_inner_size)
-            } else {
-                winit_window_builder.with_min_inner_size(min_inner_size)
-            };
+        // let winit_window_builder =
+        //     if constraints.max_width.is_finite() && constraints.max_height.is_finite() {
+        //         winit_window_builder
+        //             .with_min_inner_size(min_inner_size)
+        //             .with_max_inner_size(max_inner_size)
+        //     } else {
+        //         winit_window_builder.with_min_inner_size(min_inner_size)
+        //     };
 
-        #[allow(unused_mut)]
-        let mut winit_window_builder = winit_window_builder.with_title(&window_descriptor.title);
+        // #[allow(unused_mut)]
+        // let mut winit_window_builder = winit_window_builder.with_title(&window_descriptor.title);
 
-        let winit_window = winit_window_builder.build(event_loop).unwrap();
+        // let winit_window = winit_window_builder.build(event_loop).unwrap();
 
-        if window_descriptor.cursor_locked {
-            match winit_window.set_cursor_grab(CursorGrabMode::Confined) {
-                Ok(_) => {}
-                Err(winit::error::ExternalError::NotSupported(_)) => {}
-                Err(err) => panic!("{:?}", err),
-            }
-        }
+        // if window_descriptor.cursor_locked {
+        //     match winit_window.set_cursor_grab(CursorGrabMode::Confined) {
+        //         Ok(_) => {}
+        //         Err(winit::error::ExternalError::NotSupported(_)) => {}
+        //         Err(err) => panic!("{:?}", err),
+        //     }
+        // }
 
-        winit_window.set_cursor_visible(window_descriptor.cursor_visible);
+        // winit_window.set_cursor_visible(window_descriptor.cursor_visible);
 
-        let id = winit_window.id();
-        if self.primary.is_none() {
-            self.primary = Some(id);
-        }
+        // let id = winit_window.id();
+        // if self.primary.is_none() {
+        //     self.primary = Some(id);
+        // }
 
-        self.windows.insert(
-            id,
-            VulkanoWindowRenderer::new(
-                vulkano_context,
-                winit_window,
-                window_descriptor,
-                swapchain_create_info_modify,
-            ),
-        );
+        // self.windows.insert(
+        //     id,
+        //     VulkanoWindowRenderer::new(
+        //         vulkano_context,
+        //         winit_window,
+        //         window_descriptor,
+        //         swapchain_create_info_modify,
+        //     ),
+        // );
 
-        id
+        // id
+        panic!("i'm not bothering to rewrite this")
     }
 
     /// Get a mutable reference to the primary window's renderer.
@@ -255,6 +259,7 @@ impl VulkanoWindows {
     }
 }
 
+#[allow(unused)]
 fn get_fitting_videomode(
     monitor: &winit::monitor::MonitorHandle,
     width: u32,
@@ -287,6 +292,7 @@ fn get_fitting_videomode(
     modes.first().unwrap().clone()
 }
 
+#[allow(unused)]
 fn get_best_videomode(monitor: &winit::monitor::MonitorHandle) -> winit::monitor::VideoMode {
     let mut modes = monitor.video_modes().collect::<Vec<_>>();
     modes.sort_by(|a, b| {
