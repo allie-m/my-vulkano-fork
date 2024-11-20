@@ -116,14 +116,14 @@ impl Surface {
             #[cfg(target_os = "macos")]
             (RawWindowHandle::AppKit(window), RawDisplayHandle::AppKit(_display)) => {
                 // Ensure the layer is `CAMetalLayer`.
-                let layer = get_metal_layer_macos(window.ns_view);
+                let layer = get_metal_layer_macos(window.ns_view.as_ptr());
 
                 Self::from_mac_os(instance, layer as *const (), None)
             }
             #[cfg(target_os = "ios")]
             (RawWindowHandle::UiKit(window), RawDisplayHandle::UiKit(_display)) => {
                 // Ensure the layer is `CAMetalLayer`.
-                let layer = get_metal_layer_ios(window.ui_view);
+                let layer = get_metal_layer_ios(window.ui_view.as_ptr());
 
                 Self::from_ios(instance, layer, None)
             }
